@@ -1,0 +1,1667 @@
+{
+  "info": {
+    "_postman_id": "8b7d4e9a-3c21-4f56-9a12-7e6f5d4c3b2a",
+    "name": "TewsDay Backend API (All 70 Endpoints)",
+    "description": "ชุดทดสอบ API ทั้งหมดของระบบ TewsDay Backend (64 เส้นหลักตาม Notion Board + 1 Health Check + 5 Template Example = 70 เส้น)\n\nวิธีใช้งาน:\n1. ตั้งค่า Variable `baseUrl` = `http://localhost:5001`\n2. กดยิงในโฟลเดอร์ `01 - Auth` (เช่น Login Admin / Register Student / Register Tutor) ระบบจะบันทึก `{{token}}` และ ID ต่างๆ ลง Collection Variables ให้อัตโนมัติ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5001", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "adminToken", "value": "", "type": "string" },
+    { "key": "studentToken", "value": "", "type": "string" },
+    { "key": "tutorToken", "value": "", "type": "string" },
+    { "key": "userId", "value": "00000000-0000-4000-8000-000000000001", "type": "string" },
+    { "key": "sessionId", "value": "00000000-0000-4000-8000-000000000002", "type": "string" },
+    { "key": "subjectId", "value": "00000000-0000-4000-8000-000000000003", "type": "string" },
+    { "key": "tutorProfileId", "value": "00000000-0000-4000-8000-000000000004", "type": "string" },
+    { "key": "studentProfileId", "value": "00000000-0000-4000-8000-000000000005", "type": "string" },
+    { "key": "eduId", "value": "00000000-0000-4000-8000-000000000006", "type": "string" },
+    { "key": "studentJobId", "value": "00000000-0000-4000-8000-000000000007", "type": "string" },
+    { "key": "jobApplicationId", "value": "00000000-0000-4000-8000-000000000008", "type": "string" },
+    { "key": "bookingId", "value": "00000000-0000-4000-8000-000000000009", "type": "string" },
+    { "key": "classSessionId", "value": "00000000-0000-4000-8000-000000000010", "type": "string" },
+    { "key": "invoiceId", "value": "00000000-0000-4000-8000-000000000011", "type": "string" },
+    { "key": "conversationId", "value": "00000000-0000-4000-8000-000000000012", "type": "string" },
+    { "key": "messageId", "value": "00000000-0000-4000-8000-000000000013", "type": "string" },
+    { "key": "fileId", "value": "00000000-0000-4000-8000-000000000014", "type": "string" },
+    { "key": "notificationId", "value": "00000000-0000-4000-8000-000000000015", "type": "string" },
+    { "key": "requestId", "value": "00000000-0000-4000-8000-000000000016", "type": "string" },
+    { "key": "exampleId", "value": "00000000-0000-4000-8000-000000000017", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "00 - System & Health Check (1)",
+      "item": [
+        {
+          "name": "GET /status-check — ตรวจสอบสถานะเซิร์ฟเวอร์",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/status-check",
+              "host": ["{{baseUrl}}"],
+              "path": ["status-check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Card 1: Auth (7)",
+      "item": [
+        {
+          "name": "[auth_001_c] POST /api/v1/auth/register — สมัครสมาชิกใหม่",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  pm.collectionVariables.set('studentToken', res.data.token);",
+                  "  pm.collectionVariables.set('userId', res.data.userId);",
+                  "  pm.collectionVariables.set('sessionId', res.data.sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student1@tewsday.com\",\n  \"password\": \"SomePassword1234\",\n  \"displayName\": \"น้องมิน นักเรียน ม.6\",\n  \"username\": \"student_min\",\n  \"phoneNumber\": \"0812345678\",\n  \"currentMode\": \"student\",\n  \"deviceId\": \"macbook-chrome-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "[auth_002_c] POST /api/v1/auth/login — เข้าสู่ระบบ (Seed Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  pm.collectionVariables.set('adminToken', res.data.token);",
+                  "  pm.collectionVariables.set('userId', res.data.userId);",
+                  "  pm.collectionVariables.set('sessionId', res.data.sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@myapp.com\",\n  \"password\": \"SomePassword1234\",\n  \"deviceId\": \"admin-macbook\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "[auth_003_c] POST /api/v1/auth/oauth/:provider — ล็อกอินผ่าน OAuth (Google)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  pm.collectionVariables.set('tutorToken', res.data.token);",
+                  "  pm.collectionVariables.set('userId', res.data.userId);",
+                  "  pm.collectionVariables.set('sessionId', res.data.sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerAccountId\": \"google-oauth-uid-99999\",\n  \"email\": \"tutor1@tewsday.com\",\n  \"displayName\": \"ครูพี่นนท์ วิศวะ จุฬาฯ\",\n  \"currentMode\": \"tutor\",\n  \"deviceId\": \"ipad-pro-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/oauth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "oauth", "google"]
+            }
+          }
+        },
+        {
+          "name": "[auth_004_c] POST /api/v1/auth/refresh-token — ต่ออายุ Session Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  pm.collectionVariables.set('sessionId', res.data.sessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{token}}\",\n  \"deviceId\": \"macbook-chrome-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "[auth_006_s] POST /api/v1/auth/sessions/search — ดูรายการเซสชันที่ล็อกอินอยู่",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/sessions/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "sessions", "search"]
+            }
+          }
+        },
+        {
+          "name": "[auth_006_d] DELETE /api/v1/auth/sessions/:sessionId/delete — ตัดสิทธิ์เซสชันเครื่องอื่น",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/sessions/{{sessionId}}/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "sessions", "{{sessionId}}", "delete"]
+            }
+          }
+        },
+        {
+          "name": "[auth_005_c] POST /api/v1/auth/logout — ออกจากระบบเซสชันปัจจุบัน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Card 2: User, Mode & Notifications (7)",
+      "item": [
+        {
+          "name": "[me_001_g] GET /api/v1/me/profile/get — ดูข้อมูลโปรไฟล์ตนเอง",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data) {",
+                  "  if (res.data.studentProfileId) pm.collectionVariables.set('studentProfileId', res.data.studentProfileId);",
+                  "  if (res.data.tutorProfileId) pm.collectionVariables.set('tutorProfileId', res.data.tutorProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/profile/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "profile", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_001_mode] PUT /api/v1/me/profile/mode/edit — สลับโหมด (student / tutor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data) {",
+                  "  if (res.data.studentProfileId) pm.collectionVariables.set('studentProfileId', res.data.studentProfileId);",
+                  "  if (res.data.tutorProfileId) pm.collectionVariables.set('tutorProfileId', res.data.tutorProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentMode\": \"tutor\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/profile/mode/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "profile", "mode", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_001_avatar] PUT /api/v1/me/profile/avatar/edit — อัปเดตรูปโปรไฟล์",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profileImageId\": \"{{fileId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/profile/avatar/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "profile", "avatar", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_001_noti_e] PUT /api/v1/me/profile/notifications/edit — ตั้งค่าการแจ้งเตือน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEnabled\": true,\n  \"chatEnabled\": true,\n  \"sessionReminders\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/profile/notifications/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "profile", "notifications", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_002_badge] GET /api/v1/me/badge-counts/get — ดึงตัวเลขแจ้งเตือนบน Navbar",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/badge-counts/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "badge-counts", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_002_s] POST /api/v1/me/notifications/search — ค้นหารายการแจ้งเตือน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/notifications/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "notifications", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_002_read] PUT /api/v1/me/notifications/:id/read — อ่านการแจ้งเตือน",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "notifications", "{{notificationId}}", "read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Card 3: Storage (3)",
+      "item": [
+        {
+          "name": "[storage_001_c] POST /api/v1/storage/presigned-upload — ขอ S3 Presigned URL",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"transcript.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"size\": 245000,\n  \"folder\": \"documents\",\n  \"isPublicFlag\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/storage/presigned-upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "storage", "presigned-upload"]
+            }
+          }
+        },
+        {
+          "name": "[storage_002_c] POST /api/v1/storage/confirm-upload — ยืนยันการอัปโหลดไฟล์ลง DB",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.fileId) {",
+                  "  pm.collectionVariables.set('fileId', res.data.fileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"transcript.pdf\",\n  \"filePath\": \"private/documents/2026-11-05/transcript.pdf\",\n  \"size\": 245000,\n  \"type\": \"application/pdf\",\n  \"fileExtension\": \"pdf\",\n  \"isPublicFlag\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/storage/confirm-upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "storage", "confirm-upload"]
+            }
+          }
+        },
+        {
+          "name": "[storage_003_g] GET /api/v1/storage/:fileId/view-url — ขอ Signed URL ดูไฟล์",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/storage/{{fileId}}/view-url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "storage", "{{fileId}}", "view-url"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Card 4: Tutor Profile (7)",
+      "item": [
+        {
+          "name": "[me_003_g] GET /api/v1/me/tutor/get — ดูโปรไฟล์ติวเตอร์ของตนเอง",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.tutorProfileId) {",
+                  "  pm.collectionVariables.set('tutorProfileId', res.data.tutorProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_e] PUT /api/v1/me/tutor/edit — แก้ไขโปรไฟล์ติวเตอร์, พิกัด, และวิชาที่สอน",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.tutorProfileId) {",
+                  "  pm.collectionVariables.set('tutorProfileId', res.data.tutorProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"ติวเตอร์วิศวะ จุฬาฯ ประสบการณ์สอนแคลคูลัสและฟิสิกส์กว่า 5 ปี เน้นเข้าใจพื้นฐานทำโจทย์ได้จริง\",\n  \"hourlyRate\": 500,\n  \"teachingLocationType\": \"hybrid\",\n  \"latitude\": 13.7384,\n  \"longitude\": 100.5321,\n  \"serviceRadiusKm\": 15,\n  \"paymentDetails\": {\n    \"bankName\": \"KBANK\",\n    \"accountNumber\": \"123-4-56789-0\",\n    \"promptPay\": \"0812345678\"\n  },\n  \"subjects\": [\n    {\n      \"subjectId\": \"{{subjectId}}\",\n      \"proficiencyLevel\": \"Expert\",\n      \"gradeLevels\": [\"ม.4\", \"ม.5\", \"ม.6\", \"มหาวิทยาลัย\"],\n      \"specializedTopics\": [\"Calculus 1\", \"Linear Algebra\", \"A-Level Math\"],\n      \"customHourlyRate\": 500\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_edu_c] POST /api/v1/me/tutor/education/create — เพิ่มประวัติการศึกษา",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.tutorEducationId) {",
+                  "  pm.collectionVariables.set('eduId', res.data.tutorEducationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution\": \"จุฬาลงกรณ์มหาวิทยาลัย\",\n  \"degree\": \"วิศวกรรมศาสตรบัณฑิต\",\n  \"fieldOfStudy\": \"วิศวกรรมคอมพิวเตอร์\",\n  \"graduationYear\": 2025\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/education/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "education", "create"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_edu_d] DELETE /api/v1/me/tutor/education/:eduId/delete — ลบประวัติการศึกษา",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/education/{{eduId}}/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "education", "{{eduId}}", "delete"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_avail_g] GET /api/v1/me/tutor/availability/get — ดูตารางเวลาว่างของตนเอง",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/availability/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "availability", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_avail_e] PUT /api/v1/me/tutor/availability/edit — บันทึกตารางเวลาว่าง",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slots\": [\n    {\n      \"dayOfWeek\": 6,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"12:00\",\n      \"isAvailableFlag\": true\n    },\n    {\n      \"dayOfWeek\": 0,\n      \"startTime\": \"13:00\",\n      \"endTime\": \"17:00\",\n      \"isAvailableFlag\": true\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/availability/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "availability", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_003_req_c] POST /api/v1/me/tutor/change-requests/create — ยื่นคำขอแก้ไขข้อมูลสำคัญ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.profileChangeRequestId) {",
+                  "  pm.collectionVariables.set('requestId', res.data.profileChangeRequestId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedChanges\": {\n    \"legalFirstName\": \"นนทพัทธ์\",\n    \"legalLastName\": \"เกียรติขจร\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/tutor/change-requests/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "tutor", "change-requests", "create"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Card 5: Student Profile (3)",
+      "item": [
+        {
+          "name": "[me_004_g] GET /api/v1/me/student/get — ดูโปรไฟล์นักเรียนของตนเอง",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.studentProfileId) {",
+                  "  pm.collectionVariables.set('studentProfileId', res.data.studentProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/student/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "student", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_004_e] PUT /api/v1/me/student/edit — แก้ไขโปรไฟล์นักเรียนและพิกัดบ้าน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentGradeLevel\": \"ม.6\",\n  \"schoolName\": \"โรงเรียนเตรียมอุดมศึกษา\",\n  \"latitude\": 13.7401,\n  \"longitude\": 100.5304\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/student/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "student", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_004_emergency_e] PUT /api/v1/me/student/emergency-contact/edit — แก้ไขผู้ติดต่อฉุกเฉิน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parentName\": \"คุณแม่สมศรี\",\n  \"parentPhone\": \"0891112222\",\n  \"emergencyContact\": {\n    \"relationship\": \"มารดา\",\n    \"lineId\": \"@mom_somsri\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/student/emergency-contact/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "student", "emergency-contact", "edit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Card 6: Subjects (4)",
+      "item": [
+        {
+          "name": "[adm_003_c] POST /api/v1/admin/subjects/create — เพิ่มวิชาใหม่ (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.subjectId) {",
+                  "  pm.collectionVariables.set('subjectId', res.data.subjectId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"คณิตศาสตร์ประยุกต์ (A-Level)\",\n  \"category\": \"Mathematics\",\n  \"description\": \"ติวสอบ A-Level คณิตศาสตร์ 1 และแคลคูลัสเบื้องต้น\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/subjects/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "subjects", "create"]
+            }
+          }
+        },
+        {
+          "name": "[adm_003_e] PUT /api/v1/admin/subjects/:subjectId/edit — แก้ไขข้อมูลวิชา (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"คณิตศาสตร์ประยุกต์ 1 (A-Level & TGAT)\",\n  \"category\": \"Mathematics\",\n  \"description\": \"ติวเข้มคณิตศาสตร์ ม.ปลาย และแคลคูลัสมหาวิทยาลัย\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/subjects/{{subjectId}}/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "subjects", "{{subjectId}}", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[pub_001_s] POST /api/v1/public/subjects/search — ค้นหารายชื่อวิชาทั้งหมด",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.data && res.data.data.length > 0) {",
+                  "  pm.collectionVariables.set('subjectId', res.data.data[0].subjectId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 20,\n  \"sortBy\": \"name\",\n  \"sortOrder\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/subjects/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "subjects", "search"]
+            }
+          }
+        },
+        {
+          "name": "[pub_001_g] GET /api/v1/public/subjects/:subjectId/get — ดูรายละเอียดวิชา",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/subjects/{{subjectId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "subjects", "{{subjectId}}", "get"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Card 7: Tutor Search (3)",
+      "item": [
+        {
+          "name": "[pub_002_s] POST /api/v1/public/tutors/search — ค้นหาติวเตอร์ (PostGIS + ราคา + วิชา)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.data && res.data.data.length > 0) {",
+                  "  pm.collectionVariables.set('tutorProfileId', res.data.data[0].tutorProfileId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 13.7384,\n  \"longitude\": 100.5321,\n  \"radiusKm\": 20,\n  \"minHourlyRate\": 200,\n  \"maxHourlyRate\": 1000,\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"popularityScore\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/tutors/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "tutors", "search"]
+            }
+          }
+        },
+        {
+          "name": "[pub_002_g] GET /api/v1/public/tutors/:tutorId/get — ดูโปรไฟล์สาธารณะของติวเตอร์",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/tutors/{{tutorProfileId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "tutors", "{{tutorProfileId}}", "get"]
+            }
+          }
+        },
+        {
+          "name": "[pub_002_avail_g] GET /api/v1/public/tutors/:tutorId/availability/get — ดูเวลาว่างติวเตอร์",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/tutors/{{tutorProfileId}}/availability/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "tutors", "{{tutorProfileId}}", "availability", "get"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Card 8: Marketplace (Student Jobs) (8)",
+      "item": [
+        {
+          "name": "[me_005_c] POST /api/v1/me/jobs/create — นักเรียนสร้างประกาศหาติวเตอร์",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.studentJobId) {",
+                  "  pm.collectionVariables.set('studentJobId', res.data.studentJobId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subjectId}}\",\n  \"targetGradeLevel\": \"ม.6\",\n  \"topics\": [\"แคลคูลัสเบื้องต้น\", \"ลิมิตและความต่อเนื่อง\"],\n  \"learningGoal\": \"เตรียมสอบเข้าวิศวะ จุฬาฯ ต้องการปูพื้นฐานและตะลุยโจทย์ 10 พ.ศ.\",\n  \"budgetMin\": 400,\n  \"budgetMax\": 600,\n  \"locationType\": \"hybrid\",\n  \"latitude\": 13.7401,\n  \"longitude\": 100.5304,\n  \"frequencyPerWeek\": 2,\n  \"preferredDays\": [\"Saturday\", \"Sunday\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/jobs/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "jobs", "create"]
+            }
+          }
+        },
+        {
+          "name": "[pub_003_s] POST /api/v1/public/jobs/search — ค้นหาประกาศงานสอนทั้งหมด",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/jobs/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "jobs", "search"]
+            }
+          }
+        },
+        {
+          "name": "[pub_003_g] GET /api/v1/public/jobs/:jobId/get — ดูรายละเอียดประกาศงานสอน",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/jobs/{{studentJobId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "jobs", "{{studentJobId}}", "get"]
+            }
+          }
+        },
+        {
+          "name": "[pub_003_share] POST /api/v1/public/jobs/:jobId/share — เพิ่มยอดแชร์ประกาศงาน",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/jobs/{{studentJobId}}/share",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "jobs", "{{studentJobId}}", "share"]
+            }
+          }
+        },
+        {
+          "name": "[me_005_apply_c] POST /api/v1/me/jobs/:jobId/apply — ติวเตอร์ยื่นใบสมัครสอน",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.jobApplicationId) {",
+                  "  pm.collectionVariables.set('jobApplicationId', res.data.jobApplicationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proposedRate\": 500,\n  \"proposedAvailability\": [\"Saturday 09:00-11:00\", \"Sunday 13:00-15:00\"],\n  \"coverMessage\": \"สวัสดีครับ พี่มีชีทสรุปแคลคูลัสและข้อสอบเก่าครบพร้อมสอนครับ\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/jobs/{{studentJobId}}/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "jobs", "{{studentJobId}}", "apply"]
+            }
+          }
+        },
+        {
+          "name": "[me_005_apps_s] POST /api/v1/me/jobs/:jobId/applications/search — ดูรายการใบสมัครในงานนั้น",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/jobs/{{studentJobId}}/applications/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "jobs", "{{studentJobId}}", "applications", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_005_app_status_e] PUT /api/v1/me/applications/:applicationId/status/edit — ตอบรับ/ปฏิเสธใบสมัคร",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/applications/{{jobApplicationId}}/status/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "applications", "{{jobApplicationId}}", "status", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[me_005_status_e] PUT /api/v1/me/jobs/:jobId/status/edit — ปิดหรือยกเลิกประกาศงาน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/jobs/{{studentJobId}}/status/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "jobs", "{{studentJobId}}", "status", "edit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Card 9: Bookings (4)",
+      "item": [
+        {
+          "name": "[me_006_c] POST /api/v1/me/bookings/create — สร้างการจองคอร์สเรียนพร้อมตารางสอน",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.bookingId) {",
+                  "  pm.collectionVariables.set('bookingId', res.data.bookingId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutorProfileId\": \"{{tutorProfileId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"originatingStudentJobId\": \"{{studentJobId}}\",\n  \"agreedHourlyRate\": 500,\n  \"teachingMode\": \"online\",\n  \"meetingUrl\": \"https://meet.google.com/tew-sday-cls\",\n  \"sessions\": [\n    {\n      \"scheduledStart\": \"2026-11-15T09:00:00.000Z\",\n      \"scheduledEnd\": \"2026-11-15T11:00:00.000Z\",\n      \"durationMinutes\": 120\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/bookings/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "bookings", "create"]
+            }
+          }
+        },
+        {
+          "name": "[me_006_s] POST /api/v1/me/bookings/search — ค้นหารายการคอร์สเรียนของตนเอง",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/bookings/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "bookings", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_006_g] GET /api/v1/me/bookings/:bookingId/get — ดูรายละเอียดการจองคอร์ส",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/bookings/{{bookingId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "bookings", "{{bookingId}}", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_006_cancel] PUT /api/v1/me/bookings/:bookingId/cancel — ยกเลิกคอร์สเรียน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"ติดภารกิจด่วน ขอเลื่อนการเปิดคอร์สออกไปก่อน\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/bookings/{{bookingId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "bookings", "{{bookingId}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Card 10: Class Sessions (5)",
+      "item": [
+        {
+          "name": "[me_007_s] POST /api/v1/me/bookings/:bookingId/sessions/search — ดูชั่วโมงเรียนในคอร์ส",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.data && res.data.data.length > 0) {",
+                  "  pm.collectionVariables.set('classSessionId', res.data.data[0].classSessionId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 20,\n  \"sortBy\": \"scheduledStart\",\n  \"sortOrder\": \"asc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/bookings/{{bookingId}}/sessions/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "bookings", "{{bookingId}}", "sessions", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_007_start] POST /api/v1/me/sessions/:sessionId/start — ติวเตอร์กดเริ่มคลาสสอน",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/sessions/{{classSessionId}}/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "sessions", "{{classSessionId}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "[me_007_complete] POST /api/v1/me/sessions/:sessionId/complete — ติวเตอร์กดจบคลาสพร้อมบันทึกผลการเรียน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonFeedback\": \"วันนี้น้องเข้าใจเรื่องอนุพันธ์อันดับสูงได้ดีมาก ทำโจทย์ได้คล่อง\",\n  \"homeworkAssigned\": \"แบบฝึกหัดท้ายบทที่ 3 ข้อ 1-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/sessions/{{classSessionId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "sessions", "{{classSessionId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "[me_007_confirm] POST /api/v1/me/sessions/:sessionId/confirm-attendance — นักเรียนกดยืนยันเข้าเรียน",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/sessions/{{classSessionId}}/confirm-attendance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "sessions", "{{classSessionId}}", "confirm-attendance"]
+            }
+          }
+        },
+        {
+          "name": "[me_007_dispute] POST /api/v1/me/sessions/:sessionId/dispute — แจ้งข้อพิพาทชั่วโมงเรียน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"disputeReason\": \"ติวเตอร์เข้าสอนช้ากว่าเวลานัดหมาย 45 นาที และจบก่อนเวลา\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/sessions/{{classSessionId}}/dispute",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "sessions", "{{classSessionId}}", "dispute"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Card 11: Invoices & Commission Billing (3)",
+      "item": [
+        {
+          "name": "[me_009_s] POST /api/v1/me/invoices/search — ดูรายการใบแจ้งหนี้ทั้งหมดของผู้ใช้",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.data && res.data.data.length > 0) {",
+                  "  pm.collectionVariables.set('invoiceId', res.data.data[0].invoiceId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/invoices/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "invoices", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_009_g] GET /api/v1/me/invoices/:invoiceId/get — ดูรายละเอียดใบแจ้งหนี้",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/invoices/{{invoiceId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "invoices", "{{invoiceId}}", "get"]
+            }
+          }
+        },
+        {
+          "name": "[me_009_slip_c] POST /api/v1/me/invoices/:invoiceId/slip/upload — แนบสลิปโอนค่าคอมมิชชัน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slipFileId\": \"{{fileId}}\",\n  \"paymentMethod\": \"promptpayQr\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/invoices/{{invoiceId}}/slip/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "invoices", "{{invoiceId}}", "slip", "upload"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Card 12: Chat & Messaging (6)",
+      "item": [
+        {
+          "name": "[me_010_conv_c] POST /api/v1/me/conversations/create — สร้างหรือเปิดห้องแชท",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.conversationId) {",
+                  "  pm.collectionVariables.set('conversationId', res.data.conversationId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutorProfileId\": \"{{tutorProfileId}}\",\n  \"studentProfileId\": \"{{studentProfileId}}\",\n  \"bookingId\": \"{{bookingId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/conversations/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "conversations", "create"]
+            }
+          }
+        },
+        {
+          "name": "[me_010_conv_s] POST /api/v1/me/conversations/search — ดูรายการห้องสนทนาทั้งหมด",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 20,\n  \"sortBy\": \"lastMessageAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/conversations/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "conversations", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_010_msg_c] POST /api/v1/me/conversations/:conversationId/messages/create — ส่งข้อความในห้องแชท",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data.messageId) {",
+                  "  pm.collectionVariables.set('messageId', res.data.messageId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messageType\": \"text\",\n  \"content\": \"สวัสดีครับครูพี่นนท์ วันเสาร์นี้เริ่มเรียน 9 โมงเช้าตามนัดนะครับ\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/conversations/{{conversationId}}/messages/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "conversations", "{{conversationId}}", "messages", "create"]
+            }
+          }
+        },
+        {
+          "name": "[me_010_msg_s] POST /api/v1/me/conversations/:conversationId/messages/search — ดึงประวัติข้อความแชท",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/conversations/{{conversationId}}/messages/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "conversations", "{{conversationId}}", "messages", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_010_read] PUT /api/v1/me/conversations/:conversationId/read — อ่านข้อความทั้งหมดในห้องแชท",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/conversations/{{conversationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "conversations", "{{conversationId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "[me_010_msg_d] DELETE /api/v1/me/messages/:messageId/delete — ลบข้อความของตนเอง",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/messages/{{messageId}}/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "messages", "{{messageId}}", "delete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Card 13: Reviews & Ratings (3)",
+      "item": [
+        {
+          "name": "[me_011_c] POST /api/v1/me/sessions/:sessionId/reviews/create — เขียนรีวิวหลังจบคลาส",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ratingScore\": 5,\n  \"comment\": \"พี่นนท์สอนดีมากครับ อธิบายเข้าใจง่าย มีเทคนิคทำโจทย์เร็วเยอะมาก\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/sessions/{{classSessionId}}/reviews/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "sessions", "{{classSessionId}}", "reviews", "create"]
+            }
+          }
+        },
+        {
+          "name": "[pub_002_rev_s] POST /api/v1/public/tutors/:tutorId/reviews/search — ดูรีวิวทั้งหมดของติวเตอร์",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/tutors/{{tutorProfileId}}/reviews/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "public", "tutors", "{{tutorProfileId}}", "reviews", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_011_s] POST /api/v1/me/reviews/search — ดูประวัติรีวิวที่ตนเองเคยเขียน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/reviews/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "reviews", "search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Card 15: AI Recommendations Engine (3)",
+      "item": [
+        {
+          "name": "[me_008_tutors_s] POST /api/v1/me/recommendations/tutors/search — ดึงติวเตอร์แนะนำ (Hybrid Scoring)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subjectId}}\",\n  \"budgetMax\": 600,\n  \"teachingLocationType\": \"hybrid\",\n  \"latitude\": 13.7384,\n  \"longitude\": 100.5321,\n  \"page\": 1,\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/recommendations/tutors/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "recommendations", "tutors", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_008_jobs_s] POST /api/v1/me/recommendations/jobs/search — ดึงงานสอนแนะนำสำหรับติวเตอร์",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjectId\": \"{{subjectId}}\",\n  \"locationType\": \"hybrid\",\n  \"page\": 1,\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/recommendations/jobs/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "recommendations", "jobs", "search"]
+            }
+          }
+        },
+        {
+          "name": "[me_008_feedback_c] POST /api/v1/me/recommendations/feedback/create — บันทึก Feedback การแนะนำ",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"tutorProfile\",\n  \"targetId\": \"{{tutorProfileId}}\",\n  \"action\": \"declined\",\n  \"declineReason\": \"budgetMismatch\",\n  \"rankingVersion\": \"v1.0-hybrid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me/recommendations/feedback/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me", "recommendations", "feedback", "create"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Card 16: Admin Moderation & Back-office (9)",
+      "item": [
+        {
+          "name": "[adm_001_s] POST /api/v1/admin/tutors/verification/search — ดูคิวติวเตอร์รอตรวจสอบ",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationStatus\": \"pending\",\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/tutors/verification/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "tutors", "verification", "search"]
+            }
+          }
+        },
+        {
+          "name": "[adm_001_verify] PUT /api/v1/admin/tutors/:tutorId/verify — อนุมัติยืนยันตัวตนติวเตอร์",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationStatus\": \"verified\",\n  \"introVideoStatus\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/tutors/{{tutorProfileId}}/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "tutors", "{{tutorProfileId}}", "verify"]
+            }
+          }
+        },
+        {
+          "name": "[adm_002_s] POST /api/v1/admin/change-requests/search — ดูคำขอแก้ไขข้อมูลของติวเตอร์",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"pending\",\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/change-requests/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "change-requests", "search"]
+            }
+          }
+        },
+        {
+          "name": "[adm_002_resolve] PUT /api/v1/admin/change-requests/:requestId/resolve — อนุมัติ/ปฏิเสธคำขอแก้ข้อมูล",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/change-requests/{{requestId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "change-requests", "{{requestId}}", "resolve"]
+            }
+          }
+        },
+        {
+          "name": "[adm_004_s] POST /api/v1/admin/invoices/commission/search — ดูรายการบิลค่าคอมมิชชัน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/invoices/commission/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "invoices", "commission", "search"]
+            }
+          }
+        },
+        {
+          "name": "[adm_004_verify] PUT /api/v1/admin/invoices/:invoiceId/verify-slip — อนุมัติสลิปค่าคอมมิชชัน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/invoices/{{invoiceId}}/verify-slip",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "invoices", "{{invoiceId}}", "verify-slip"]
+            }
+          }
+        },
+        {
+          "name": "[adm_005_s] POST /api/v1/admin/disputes/search — ดูรายการข้อพิพาทคลาสเรียน",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/disputes/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "disputes", "search"]
+            }
+          }
+        },
+        {
+          "name": "[adm_005_resolve] PUT /api/v1/admin/disputes/:disputeId/resolve — ตัดสินข้อพิพาทคลาสเรียน",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"paymentStatus\": \"tutorConfirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/disputes/{{classSessionId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "disputes", "{{classSessionId}}", "resolve"]
+            }
+          }
+        },
+        {
+          "name": "[adm_006_suspend] PUT /api/v1/admin/users/:userId/suspend — ระงับหรือปลดระงับบัญชีผู้ใช้",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{userId}}/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "admin", "users", "{{userId}}", "suspend"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "99 - Template Example CRUD (5)",
+      "item": [
+        {
+          "name": "[tmp_001_c] POST /api/v1/template/example/create — สร้าง Example",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Example\",\n  \"content\": \"Hello TewsDay\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/template/example/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "template", "example", "create"]
+            }
+          }
+        },
+        {
+          "name": "[tmp_001_s] POST /api/v1/template/example/search — ค้นหา Example",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortOrder\": \"desc\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/template/example/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "template", "example", "search"]
+            }
+          }
+        },
+        {
+          "name": "[tmp_001_g] GET /api/v1/template/example/:exampleId/get — ดูรายละเอียด Example",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/template/example/{{exampleId}}/get",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "template", "example", "{{exampleId}}", "get"]
+            }
+          }
+        },
+        {
+          "name": "[tmp_001_e] PUT /api/v1/template/example/:exampleId/edit — แก้ไข Example",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Example\",\n  \"content\": \"Updated content\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/template/example/{{exampleId}}/edit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "template", "example", "{{exampleId}}", "edit"]
+            }
+          }
+        },
+        {
+          "name": "[tmp_001_d] DELETE /api/v1/template/example/:exampleId/delete — ลบ Example",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/template/example/{{exampleId}}/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "template", "example", "{{exampleId}}", "delete"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

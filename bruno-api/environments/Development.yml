@@ -1,0 +1,10 @@
+name: Development
+variables:
+  - name: baseUrl
+    value: http://localhost:5001
+  - name: baseURL
+    value: http://localhost:5001
+  - secret: true
+    name: token
+  - name: exampleId
+    value: ""

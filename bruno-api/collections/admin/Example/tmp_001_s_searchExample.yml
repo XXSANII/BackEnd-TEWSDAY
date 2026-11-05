@@ -1,0 +1,22 @@
+info:
+  name: tmp_001_s_searchExample
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/template/example/search"
+  body:
+    type: json
+    data: |-
+      {
+        "pageNumber": 1,
+        "pageSize": 10
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

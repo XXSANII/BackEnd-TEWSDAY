@@ -1,0 +1,15 @@
+info:
+  name: tmp_001_d_deleteExample
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/v1/template/example/{{exampleId}}/delete"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

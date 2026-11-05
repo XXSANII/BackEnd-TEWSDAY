@@ -1,0 +1,21 @@
+info:
+  name: tmp_001_e_editExample
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/api/v1/template/example/{{exampleId}}/edit"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "First example"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

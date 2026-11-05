@@ -1,0 +1,21 @@
+info:
+  name: tmp_001_c_createExample
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/template/example/create"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "First example"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

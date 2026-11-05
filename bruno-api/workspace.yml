@@ -1,0 +1,14 @@
+opencollection: 1.0.0
+info:
+  name: "bruno-tewsday"
+  type: workspace
+
+collections:
+  - name: "admin"
+    path: "collections/admin"
+  - name: "user"
+    path: "collections/user"
+
+specs:
+
+docs: ''
