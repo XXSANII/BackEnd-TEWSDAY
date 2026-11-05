@@ -1,91 +1,144 @@
-# MyApp Backend
+# TewsDay Backend API
 
-MyApp's backend API: an Express 5 + TypeScript service on PostgreSQL (Knex) and Redis.
+ระบบหลังบ้านของแพลตฟอร์มจับคู่ติวเตอร์และนักเรียน **TewsDay** พัฒนาด้วย **Express 5 + TypeScript** บนฐานข้อมูล **PostgreSQL 16 (`PostGIS` + `pgvector` + `pg_trgm`)** และ **Redis**
 
-This is a pure starter: the core schema, auth middleware, shared utils, a session-expiry cron job,
-and one full CRUD template module (`template/example`) to copy when you add your own resources.
-There are no sign-in / sign-up endpoints - add your own `auth` group when the project needs one.
+---
 
-## Stack
+## 🛠️ สิ่งที่ต้องมีในเครื่องก่อนเริ่มรัน (Prerequisites)
 
-| Thing | What we use |
-| --- | --- |
-| Runtime | Node 20, TypeScript 5 (`strict`), CommonJS |
-| HTTP | Express 5 |
-| Database | PostgreSQL via Knex 3, `pg_trgm` for fuzzy search |
-| Cache | Redis via `ioredis` |
-| Validation | Zod 4 |
-| Auth | JWT + `Session` table + Redis cache, Google sign-in |
-| Uploads | `multer` -> S3-compatible object storage (`@aws-sdk/client-s3`) |
-| Email | Gmail SMTP (`EMAIL_USER` + `GOOGLE_APP_PASSWORD`) via `sendEmail` |
+1. **Node.js** เวอร์ชัน `20.x` ขึ้นไป
+2. **Docker Desktop** (สำหรับรัน PostgreSQL 16 + PostGIS + pgvector และ Redis)
+3. **Postman** (สำหรับนำเข้าไฟล์ [`TewsDay_Postman_Collection.json`](TewsDay_Postman_Collection.json) เพื่อยิงทดสอบ API ทั้ง 70 เส้น)
 
-## Prerequisites
+---
 
-- Node.js 20
-- PostgreSQL with the `pg_trgm` extension available (the baseline migration runs `CREATE EXTENSION`)
-- Redis
-- S3-compatible object storage - optional, only needed for file uploads
+## 🚀 ขั้นตอนการติดตั้งและรันโปรเจกต์ (Step-by-Step)
 
-## Setup
+### Step 1: Clone โปรเจกต์และติดตั้ง Dependencies
 
 ```bash
-cp .env.example .env        # then fill in the database, Redis and JWT_SECRET values
+git clone https://github.com/XXSANII/BackEnd-TEWSDAY.git
+cd BackEnd-TEWSDAY
 npm install
-npm run db:migrate-up       # creates the schema (migrations/20260101000000_v-1-0-0.ts)
-npm run db:seed             # creates the default admin account
-npm run dev                 # http://localhost:5001, health check at /status-check
 ```
 
-Default admin account (from `seeds/v-1-0-0.ts`) - for when you add a sign-in endpoint:
+---
 
-| Email | Password |
+### Step 2: สร้างไฟล์ `.env`
+
+คัดลอกไฟล์ `.env.example` ไปเป็น `.env` (ค่าเริ่มต้นใน `.env.example` ตั้งค่าให้ตรงกับ Docker เรียบร้อยแล้ว ไม่ต้องแก้เพิ่มก็รันได้ทันที):
+
+```bash
+cp .env.example .env
+```
+
+---
+
+### Step 3: รันฐานข้อมูล PostgreSQL (PostGIS + pgvector) และ Redis ด้วย Docker
+
+สามารถรันผ่าน **Docker Compose** คำสั่งเดียวได้เลย:
+
+```bash
+docker compose up -d
+```
+
+*(หรือถ้าเคยรัน Container `tewsday-postgres` และ `tewsday-redis` ไว้แล้ว ให้เช็คด้วยคำสั่ง `docker ps` หรือสั่ง `docker start tewsday-postgres tewsday-redis`)*
+
+---
+
+### Step 4: รัน Database Migration (สร้างตารางทั้งหมด 32 ตาราง)
+
+```bash
+npm run db:migrate-up
+```
+
+---
+
+### Step 5: รัน Seed Data (เพิ่มข้อมูลจำลอง: แอดมิน, 8 วิชา, 3 ติวเตอร์, 2 นักเรียน, งานสอน, การจองคอร์ส, บิล, แชท)
+
+```bash
+npm run db:seed
+```
+
+---
+
+### Step 6: เปิดรันเซิร์ฟเวอร์ Backend
+
+```bash
+npm run dev
+```
+
+เมื่อรันสำเร็จ หน้าจอจะแสดงผล:
+- Server ทำงานที่: `http://localhost:5001`
+- ทดสอบ Health Check ได้ที่: `http://localhost:5001/status-check`
+
+---
+
+## 🧪 ขั้นตอนการทดสอบ API ด้วย Postman
+
+1. เปิดโปรแกรม **Postman** -> กดปุ่ม **Import**
+2. เลือกไฟล์ [`TewsDay_Postman_Collection.json`](TewsDay_Postman_Collection.json) ในโฟลเดอร์โปรเจกต์
+3. จะได้ Collection ชื่อ **`TewsDay Backend API (All 70 Endpoints)`** แบ่งหมวดหมู่ตามการ์ดทั้ง 15 การ์ด
+4. เมื่อกดยิง API ในโฟลเดอร์ **`01 - Card 1: Auth`** (เช่น Login หรือ Register) ระบบจะบันทึกค่า `{{token}}` และ ID ต่างๆ ลงใน Collection Variables ให้อัตโนมัติ
+
+---
+
+## 👤 บัญชีผู้ใช้งานจำลอง (จาก `npm run db:seed`)
+
+ทุกบัญชีใช้รหัสผ่านเดียวกันคือ: **`SomePassword1234`**
+
+| บทบาท | อีเมล (Email) | รหัสผ่าน (Password) | ชื่อที่แสดง | รายละเอียด |
+| --- | --- | --- | --- | --- |
+| **Admin** | `admin@myapp.com` | `SomePassword1234` | TewsDay Administrator | แอดมินระบบ (ใช้จัดการวิชา/อนุมัติติวเตอร์/ตรวจสลิป) |
+| **Tutor 1** | `tutor.non@tewsday.com` | `SomePassword1234` | ครูพี่นนท์ วิศวะ จุฬาฯ | `verified` (เรท 550฿/ชม., พิกัดสยาม/สามย่าน) |
+| **Tutor 2** | `tutor.ploi@tewsday.com` | `SomePassword1234` | ครูพี่พลอย อักษรฯ จุฬาฯ (IELTS 8.5) | `verified` (เรท 600฿/ชม., สอนออนไลน์) |
+| **Tutor 3** | `tutor.mark@tewsday.com` | `SomePassword1234` | พี่มาร์ค Full-Stack & Python | `pending` (รอแอดมินอนุมัติ) |
+| **Student 1** | `student.min@tewsday.com` | `SomePassword1234` | น้องมิน เตรียมอุดมฯ ม.6 | นักเรียน ม.6 (มีคอร์สเรียนและแชทกับครูพี่นนท์) |
+| **Student 2** | `student.arm@tewsday.com` | `SomePassword1234` | น้องอาร์ม ปี 1 วิศวะ | นิสิตปี 1 จุฬาฯ |
+
+---
+
+## 🗄️ วิธีเช็คข้อมูลใน Database (`PostgreSQL`) และ `Redis`
+
+### 1. เชื่อมต่อผ่านโปรแกรม GUI (DBeaver / TablePlus / pgAdmin / VS Code Extension)
+- **Host:** `localhost`
+- **Port:** `5432`
+- **Database:** `tewsday`
+- **Username:** `postgres`
+- **Password:** `postgres`
+
+### 2. เช็คผ่าน Terminal (`psql`)
+```bash
+docker exec -it tewsday-postgres psql -U postgres -d tewsday
+```
+ตัวอย่างคำสั่ง SQL ด้านใน:
+```sql
+\dt                                                                      -- ดูตารางทั้งหมด 32 ตาราง
+SELECT "userId", "email", "displayName", "role", "currentMode" FROM "User";
+SELECT "subjectId", "name", "category" FROM "Subject";
+SELECT "tutorProfileId", "hourlyRate", "verificationStatus" FROM "TutorProfile";
+\q                                                                       -- ออกจาก psql
+```
+
+---
+
+## 📜 คำสั่ง NPM Scripts ทั้งหมด
+
+| คำสั่ง | การทำงาน |
 | --- | --- |
-| `admin@myapp.com` | `SomePassword1234` |
+| `npm run dev` | รันเซิร์ฟเวอร์โหมดพัฒนา (`nodemon` + `tsx`) ที่พอร์ต `5001` |
+| `npm run type-check` | ตรวจสอบ TypeScript ทั้งโปรเจกต์ (`tsc --noEmit`) |
+| `npm run build` | คอมไพล์โค้ดเป็น JavaScript ลงโฟลเดอร์ `dist/` |
+| `npm start` | รันเซิร์ฟเวอร์ Production จากโฟลเดอร์ `dist/` |
+| `npm run db:migrate-up` | รัน Migration สร้าง/อัปเดตตารางในฐานข้อมูล |
+| `npm run db:migrate-down` | ย้อนกลับ Migration ล่าสุด 1 ขั้น |
+| `npm run db:seed` | รันข้อมูลจำลองตั้งต้นลงฐานข้อมูล (`seeds/v-1-0-0.ts`) |
 
-Every API route is versioned: `http://localhost:5001/api/v1/...`. The full endpoint list is in
-[`docs/README.md`](docs/README.md), and a ready-made [Bruno](https://www.usebruno.com/) collection lives in
-[`bruno-api/`](bruno-api/).
+---
 
-## Scripts
+## 📁 เอกสารเพิ่มเติมในโปรเจกต์
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Start the server with `tsx` + `nodemon`, watching `src/` |
-| `npm run type-check` | `tsc --noEmit` - the gate every change must pass |
-| `npm run build` | Compile to `dist/` (`tsc && tsc-alias`) |
-| `npm start` | Run the compiled server (`dist/src/server.js`) |
-| `npm run db:make-migration <name>` | Create a new Knex migration |
-| `npm run db:migrate-up` / `db:migrate-down` | Apply the latest migrations / roll back the last batch |
-| `npm run db:make-seed <name>` | Create a new seed file |
-| `npm run db:seed` | Run every seed |
-| `npm run db:seed:single <file>` | Run one seed file |
-| `npm test` | Jest (no test suite yet - passes with no tests) |
-
-## Folder map
-
-```
-src/
-  server.ts, app.ts           bootstrap, global middleware, /status-check, 404 + error handler
-  api/api.routes.ts           mounts every route group with its auth guard
-  api/<group>/<module>/       one module = routes / controller / service / validation
-    template/                 the CRUD module to copy (authProtectMiddleware) - example
-  middleware/                 auth, version, error
-  config/env.ts               the only reader of process.env (zod-parsed)
-  config/app.config.ts        fixed values: lifetimes, limits, vendor urls
-  constants/                  enum-like value lists (user, storage, system)
-  job/                        cron jobs (session expiry)
-  types/                      db.ts schema mirror, express.d.ts, auth.d.ts
-  utils/                      cache, data, date, encryption, error, notification, request, storage, validation
-migrations/ seeds/            Knex, named by schema version (v-1-0-0)
-docs/                         one Markdown file per endpoint + the index in docs/README.md
-bruno-api/                    Bruno API collection for manual verification
-.agent/skills/                the development rulebook (see AGENTS.md)
-```
-
-## Adding a module
-
-Follow the step-by-step recipe in
-[`.agent/skills/project-structure/references/api-module-recipe.md`](.agent/skills/project-structure/references/api-module-recipe.md):
-pick the group and the next free API code, write the four module files (`.validation.ts`, `.service.ts`,
-`.controller.ts`, `.routes.ts`), mount it in the group router, then add its doc under `docs/`, its row in
-`docs/README.md`, and a Bruno request. The house rules behind it are in [`AGENTS.md`](AGENTS.md).
+- [`API_PROGRESS.md`](API_PROGRESS.md) — สรุปความคืบหน้าของ API ทั้ง 16 การ์ด
+- [`docs/README.md`](docs/README.md) — ดัชนีรหัส API (`API Code`) และ Path ของทุกเส้นในระบบ
+- [`TewsDay_Postman_Collection.json`](TewsDay_Postman_Collection.json) — ไฟล์ Postman Collection ครบ 70 เส้น
+- [`AGENTS.md`](AGENTS.md) — กฎและโครงสร้างสถาปัตยกรรมของโปรเจกต์
