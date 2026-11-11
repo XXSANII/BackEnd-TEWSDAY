@@ -19,6 +19,7 @@ import {
   RequestClientMeta,
   sanitizeIpAddress,
   signSessionToken,
+  verifyGoogleIdToken,
 } from './_auth.utils';
 import {
   DeleteSessionParams,
@@ -263,17 +264,24 @@ export async function oauthLogin(
   input: OauthLoginInput,
   headers: RequestClientMeta
 ): Promise<OauthLoginResponse> {
+  // Check existing data
+  const { provider } = params;
+  if (provider !== authProviderType.GOOGLE) {
+    throw new ApiError(400, 'auth_003_c_s_05', 'Unsupported OAuth provider.');
+  }
+  const googleIdentity = await verifyGoogleIdToken(input.idToken);
+
   return db.transaction(async (trx) => {
     // Prepare data
-    const { provider } = params;
-    const normalizedEmail = input.email.trim().toLowerCase();
+    const providerAccountId = googleIdentity.providerAccountId;
+    const normalizedEmail = googleIdentity.email.trim().toLowerCase();
     let isNewUserFlag = false;
 
     // Check existing data
     let existingAuthAccount = await trx('AuthAccount')
       .where({
         provider,
-        providerAccountId: input.providerAccountId,
+        providerAccountId,
         isActiveFlag: true,
       })
       .first<AuthAccount>();
@@ -299,7 +307,7 @@ export async function oauthLogin(
       const newUserId = crypto.randomUUID();
       const rawPrefix = (normalizedEmail.split('@')[0] || 'user').replace(/[^a-z0-9_]/g, '').slice(0, 20) || 'user';
       const candidateUsername = `${rawPrefix}_${crypto.randomBytes(3).toString('hex')}`;
-      const displayName = input.displayName?.trim() || candidateUsername;
+      const displayName = googleIdentity.displayName?.trim() || input.displayName?.trim() || candidateUsername;
       const currentMode = input.currentMode || currentModeType.STUDENT;
       const userLogName = `${newUserId} [${candidateUsername} : ${displayName}]`;
 
@@ -350,7 +358,7 @@ export async function oauthLogin(
       const newAuthData: Partial<AuthAccount> = {
         userId: targetUser.userId,
         provider,
-        providerAccountId: input.providerAccountId,
+        providerAccountId,
         ...auditCreate(userLogName),
       };
       const [createdAuth] = await trx('AuthAccount').insert(newAuthData).returning<AuthAccount[]>('*');

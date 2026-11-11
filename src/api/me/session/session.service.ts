@@ -1,17 +1,12 @@
-import crypto from 'crypto';
-import { appConfig } from '@/config/app.config';
-import { env } from '@/config/env';
 import { applyPagination } from '@/utils/data/applyPagination.helper';
 import { applySort } from '@/utils/data/applySort.helper';
 import { auditCreate, auditUpdate } from '@/utils/data/auditFields.helper';
 import { calculatePagination } from '@/utils/data/calculatePagination.helper';
 import { db } from '@/utils/db';
 import { ApiError } from '@/utils/error/ApiError';
-import { ClassSession, Invoice, InvoiceItem, User } from '@/types/db';
+import { ClassSession } from '@/types/db';
 import { UserPayload } from '@/types/express';
-import { invoiceStatusType, invoiceTypeType } from '@/constants/billing.constants';
 import { paymentStatusType, sessionStatusType } from '@/constants/marketplace.constants';
-import { systemRoleType } from '@/constants/user.constants';
 import {
   CompleteClassSessionInput,
   CompleteClassSessionParams,
@@ -177,6 +172,10 @@ export async function startClassSession(
       throw new ApiError(403, 'me_007_start_s_02', 'Only the assigned tutor can start this session.');
     }
 
+    if (sessionRow.status !== sessionStatusType.SCHEDULED) {
+      throw new ApiError(409, 'me_007_start_s_04', 'Only a scheduled session can be started.');
+    }
+
     // Update data
     const now = new Date();
     const [updatedSession] = await trx('ClassSession')
@@ -231,15 +230,17 @@ export async function completeClassSession(
       throw new ApiError(403, 'me_007_complete_s_02', 'Only the assigned tutor can complete this session.');
     }
 
+    if (sessionRow.status !== sessionStatusType.IN_PROGRESS || sessionRow.completionClaimedAt) {
+      throw new ApiError(409, 'me_007_complete_s_04', 'Only an in-progress session without a claim can be completed.');
+    }
+
     // Update data
     const now = new Date();
     const [updatedSession] = await trx('ClassSession')
       .where({ classSessionId: sessionRow.classSessionId })
       .update({
-        status: sessionStatusType.COMPLETED,
         actualEnd: now,
         completionClaimedAt: now,
-        tutorConfirmedAt: now,
         lessonFeedback: input.lessonFeedback ?? sessionRow.lessonFeedback,
         homeworkAssigned: input.homeworkAssigned ?? sessionRow.homeworkAssigned,
         ...auditUpdate(user.userLogName),
@@ -262,7 +263,7 @@ export async function completeClassSession(
 /**
  * ============================================================================
  * @name    me_007_confirm
- * @desc    Confirm student attendance for a session and record platform commission.
+ * @desc    Confirm student attendance for a session and mark the lesson completed.
  *
  * ============================================================================
  */
@@ -275,11 +276,7 @@ export async function confirmSessionAttendance(
     const sessionRow = await trx('ClassSession')
       .join('StudentProfile', 'ClassSession.studentProfileId', 'StudentProfile.studentProfileId')
       .join('TutorProfile', 'ClassSession.tutorProfileId', 'TutorProfile.tutorProfileId')
-      .select(
-        'ClassSession.*',
-        'StudentProfile.userId as studentUserId',
-        'TutorProfile.userId as tutorUserId'
-      )
+      .select('ClassSession.*', 'StudentProfile.userId as studentUserId', 'TutorProfile.userId as tutorUserId')
       .where({
         'ClassSession.classSessionId': params.sessionId,
         'ClassSession.isActiveFlag': true,
@@ -294,68 +291,30 @@ export async function confirmSessionAttendance(
       throw new ApiError(403, 'me_007_confirm_s_02', 'Only the assigned student can confirm attendance.');
     }
 
+    if (sessionRow.status !== sessionStatusType.IN_PROGRESS || !sessionRow.completionClaimedAt) {
+      throw new ApiError(
+        409,
+        'me_007_confirm_s_04',
+        'Only a session claimed as complete by the tutor can be confirmed.'
+      );
+    }
+
+    if (sessionRow.paymentStatus === paymentStatusType.DISPUTED) {
+      throw new ApiError(409, 'me_007_confirm_s_05', 'A disputed session cannot be confirmed.');
+    }
+
     // Update data
     const now = new Date();
     const [updatedSession] = await trx('ClassSession')
       .where({ classSessionId: sessionRow.classSessionId })
       .update({
         status: sessionStatusType.COMPLETED,
-        paymentStatus: paymentStatusType.STUDENT_PAID,
         studentConfirmedAt: now,
         ...auditUpdate(user.userLogName),
       })
       .returning<ClassSession[]>('*');
     if (!updatedSession) {
       throw new ApiError(500, 'me_007_confirm_s_03', 'Failed to confirm session attendance.');
-    }
-
-    const existingInvoiceItem = await trx('InvoiceItem')
-      .where({ classSessionId: updatedSession.classSessionId, isActiveFlag: true })
-      .first<InvoiceItem>();
-
-    if (!existingInvoiceItem) {
-      const commissionRate = appConfig.billing.COMMISSION_RATE_STANDARD;
-      const grossAmount = Number(updatedSession.grossAmount || 0);
-      const commissionAmount = Number((grossAmount * commissionRate).toFixed(2));
-
-      let platformPayeeUserId = env.PLATFORM_PAYEE_USER_ID;
-      if (!platformPayeeUserId) {
-        const adminUser = await trx('User')
-          .where({ role: systemRoleType.ADMIN, isActiveFlag: true })
-          .first<User>();
-        platformPayeeUserId = adminUser?.userId || sessionRow.tutorUserId;
-      }
-
-      const invoiceNumber = `INV-COM-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
-      const dueDate = new Date(now.getTime() + appConfig.billing.GRACE_DAYS * 24 * 60 * 60 * 1000);
-
-      const newInvoiceData: Partial<Invoice> = {
-        invoiceNumber,
-        invoiceType: invoiceTypeType.TUTOR_COMMISSION,
-        bookingId: updatedSession.bookingId,
-        classSessionId: updatedSession.classSessionId,
-        payerUserId: sessionRow.tutorUserId,
-        payeeUserId: platformPayeeUserId,
-        commissionRateSnapshot: commissionRate,
-        amount: commissionAmount,
-        commissionFee: commissionAmount,
-        status: invoiceStatusType.UNPAID,
-        dueDate,
-        ...auditCreate(user.userLogName),
-      };
-
-      const [createdInvoice] = await trx('Invoice').insert(newInvoiceData).returning<Invoice[]>('*');
-      if (createdInvoice) {
-        const newItemData: Partial<InvoiceItem> = {
-          invoiceId: createdInvoice.invoiceId,
-          classSessionId: updatedSession.classSessionId,
-          sessionGrossAmount: grossAmount,
-          commissionRate,
-          commissionAmount,
-          ...auditCreate(user.userLogName),
-        };
-        await trx('InvoiceItem').insert(newItemData);
-      }
     }
 
     // Return result
@@ -385,11 +344,7 @@ export async function disputeClassSession(
     const sessionRow = await trx('ClassSession')
       .join('StudentProfile', 'ClassSession.studentProfileId', 'StudentProfile.studentProfileId')
       .join('TutorProfile', 'ClassSession.tutorProfileId', 'TutorProfile.tutorProfileId')
-      .select(
-        'ClassSession.*',
-        'StudentProfile.userId as studentUserId',
-        'TutorProfile.userId as tutorUserId'
-      )
+      .select('ClassSession.*', 'StudentProfile.userId as studentUserId', 'TutorProfile.userId as tutorUserId')
       .where({
         'ClassSession.classSessionId': params.sessionId,
         'ClassSession.isActiveFlag': true,

@@ -124,3 +124,54 @@ export async function establishUserSession(
     expiredAt: new Date(createdSession.expiredAt).toISOString(),
   };
 }
+
+export interface GoogleIdentity {
+  providerAccountId: string;
+  email: string;
+  displayName?: string;
+}
+
+/**
+ * ============================================================================
+ * @name    verifyGoogleIdToken
+ * @desc
+ * - Verify a Google ID token with Google's tokeninfo endpoint and return the identity it proves.
+ * - Rejects the token unless the audience is our `GOOGLE_CLIENT_ID`, the issuer is Google, it has not expired and the
+ *   email is verified.
+ * - The identity comes only from the verified token, never from client-supplied fields.
+ *
+ * ============================================================================
+ */
+export async function verifyGoogleIdToken(idToken: string): Promise<GoogleIdentity> {
+  if (!env.GOOGLE_CLIENT_ID) {
+    throw new ApiError(500, 'auth_003_c_s_06', 'Google sign-in is not configured.');
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, {
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    throw new ApiError(502, 'auth_003_c_s_08', 'Unable to verify the Google ID token.');
+  }
+  if (!response.ok) {
+    throw new ApiError(401, 'auth_003_c_s_07', 'Invalid Google ID token.');
+  }
+
+  const claims = (await response.json()) as Record<string, string | undefined>;
+  const isGoogleIssuer = claims.iss === 'accounts.google.com' || claims.iss === 'https://accounts.google.com';
+  const isNotExpired = Number(claims.exp) * 1000 > Date.now();
+  if (
+    claims.aud !== env.GOOGLE_CLIENT_ID ||
+    !isGoogleIssuer ||
+    !isNotExpired ||
+    !claims.sub ||
+    !claims.email ||
+    String(claims.email_verified) !== 'true'
+  ) {
+    throw new ApiError(401, 'auth_003_c_s_07', 'Invalid Google ID token.');
+  }
+
+  return { providerAccountId: claims.sub, email: claims.email, displayName: claims.name };
+}

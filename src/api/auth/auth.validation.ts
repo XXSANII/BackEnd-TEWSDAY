@@ -75,8 +75,9 @@ export const oauthLoginSchema = z.object({
     provider: z.enum(authProviderList, 'auth_003_c_v_01'),
   }),
   body: z.object({
-    providerAccountId: z.string('auth_003_c_v_02').min(1, 'auth_003_c_v_03'),
-    email: z.string('auth_003_c_v_04').regex(emailRegEx, 'auth_003_c_v_05'),
+    idToken: z.string('auth_003_c_v_09').min(1, 'auth_003_c_v_09'),
+    providerAccountId: z.string('auth_003_c_v_02').min(1, 'auth_003_c_v_03').optional(),
+    email: z.string('auth_003_c_v_04').regex(emailRegEx, 'auth_003_c_v_05').optional(),
     displayName: z.string('auth_003_c_v_06').min(1, 'auth_003_c_v_06').max(150, 'auth_003_c_v_06').optional(),
     currentMode: z.enum(currentModeList, 'auth_003_c_v_07').optional(),
     deviceId: z.string('auth_003_c_v_08').max(100, 'auth_003_c_v_08').optional().nullable(),

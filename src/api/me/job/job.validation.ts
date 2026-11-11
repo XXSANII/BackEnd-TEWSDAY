@@ -1,11 +1,7 @@
 import z from 'zod';
 import { PaginatedResponse, paginationSchema } from '@/utils/validation/pagination.schema';
 import { sortingSchema } from '@/utils/validation/sorting.schema';
-import {
-  applicationStatusList,
-  jobStatusList,
-  teachingLocationList,
-} from '@/constants/marketplace.constants';
+import { applicationStatusList, jobStatusList, teachingLocationList } from '@/constants/marketplace.constants';
 
 /**
  * ============================================================================
@@ -170,6 +166,7 @@ export const editJobApplicationStatusSchema = z.object({
 export const editJobApplicationStatusResponseSchema = z.object({
   jobApplicationId: z.string(),
   status: z.enum(applicationStatusList),
+  bookingId: z.string().nullable(),
 });
 
 export type EditJobApplicationStatusParams = z.infer<typeof editJobApplicationStatusSchema>['params'];

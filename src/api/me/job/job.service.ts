@@ -5,20 +5,18 @@ import { auditCreate, auditUpdate } from '@/utils/data/auditFields.helper';
 import { calculatePagination } from '@/utils/data/calculatePagination.helper';
 import { db } from '@/utils/db';
 import { ApiError } from '@/utils/error/ApiError';
-import {
-  JobApplication,
-  Notification,
-  StudentJob,
-  StudentProfile,
-  Subject,
-  TutorProfile,
-} from '@/types/db';
+import { Booking, JobApplication, Notification, StudentJob, StudentProfile, Subject, TutorProfile } from '@/types/db';
 import { UserPayload } from '@/types/express';
 import {
   applicationStatusType,
+  bookingStatusType,
   jobStatusType,
   notificationPriorityType,
+  teachingLocationType,
+  teachingModeType,
+  verificationStatusType,
 } from '@/constants/marketplace.constants';
+import { userStatusType } from '@/constants/user.constants';
 import {
   ApplyStudentJobInput,
   ApplyStudentJobParams,
@@ -283,6 +281,14 @@ export async function applyStudentJob(
       throw new ApiError(403, 'me_005_apply_c_s_01', 'Tutor profile is required to apply for jobs.');
     }
 
+    if (user.status !== userStatusType.NORMAL) {
+      throw new ApiError(403, 'me_005_apply_c_s_05', 'Your account status does not allow submitting job applications.');
+    }
+
+    if (tutorProfile.verificationStatus !== verificationStatusType.VERIFIED) {
+      throw new ApiError(403, 'me_005_apply_c_s_06', 'Only verified tutors can apply for jobs.');
+    }
+
     const existingJob = await trx('StudentJob')
       .where({ studentJobId: params.jobId, isActiveFlag: true })
       .first<StudentJob>();
@@ -358,8 +364,13 @@ export async function editJobApplicationStatus(
 ): Promise<EditJobApplicationStatusResponse> {
   return db.transaction(async (trx) => {
     // Check existing data
+    if (input.status !== applicationStatusType.ACCEPTED && input.status !== applicationStatusType.REJECTED) {
+      throw new ApiError(400, 'me_005_app_status_e_s_05', 'Only accepted or rejected can be set on an application.');
+    }
+
     const existingApp = await trx('JobApplication')
       .where({ jobApplicationId: params.applicationId, isActiveFlag: true })
+      .forUpdate()
       .first<JobApplication>();
     if (!existingApp) {
       throw new ApiError(404, 'me_005_app_status_e_s_01', 'Job application not found or inactive.');
@@ -367,6 +378,7 @@ export async function editJobApplicationStatus(
 
     const existingJob = await trx('StudentJob')
       .where({ studentJobId: existingApp.studentJobId, isActiveFlag: true })
+      .forUpdate()
       .first<StudentJob>();
     if (!existingJob) {
       throw new ApiError(404, 'me_005_app_status_e_s_02', 'Associated student job not found.');
@@ -377,6 +389,30 @@ export async function editJobApplicationStatus(
       .first<StudentProfile>();
     if (!studentProfile || studentProfile.studentProfileId !== existingJob.studentProfileId) {
       throw new ApiError(403, 'me_005_app_status_e_s_03', 'You are not authorized to manage this job application.');
+    }
+
+    // A repeated accept of the same application returns the booking it already created
+    if (existingApp.status === applicationStatusType.ACCEPTED && input.status === applicationStatusType.ACCEPTED) {
+      const existingBooking = await trx('Booking')
+        .where({
+          originatingStudentJobId: existingJob.studentJobId,
+          tutorProfileId: existingApp.tutorProfileId,
+          isActiveFlag: true,
+        })
+        .first<Booking>();
+      return {
+        jobApplicationId: existingApp.jobApplicationId,
+        status: existingApp.status,
+        bookingId: existingBooking?.bookingId ?? null,
+      };
+    }
+
+    if (existingApp.status !== applicationStatusType.PENDING) {
+      throw new ApiError(409, 'me_005_app_status_e_s_06', 'Job application is not pending.');
+    }
+
+    if (input.status === applicationStatusType.ACCEPTED && existingJob.status !== jobStatusType.OPEN) {
+      throw new ApiError(409, 'me_005_app_status_e_s_07', 'Job is no longer open.');
     }
 
     // Update data
@@ -391,36 +427,104 @@ export async function editJobApplicationStatus(
       throw new ApiError(500, 'me_005_app_status_e_s_04', 'Failed to update job application status.');
     }
 
+    const notiRows: Partial<Notification>[] = [];
+    let bookingId: string | null = null;
+
+    // -----------------------------------
+    // Accept: reject other bids, match job, create booking
+    // -----------------------------------
     if (input.status === applicationStatusType.ACCEPTED) {
+      const otherPendingApps = await trx('JobApplication')
+        .where({ studentJobId: existingJob.studentJobId, status: applicationStatusType.PENDING, isActiveFlag: true })
+        .whereNot({ jobApplicationId: existingApp.jobApplicationId })
+        .forUpdate()
+        .select<JobApplication[]>('*');
+
+      if (otherPendingApps.length > 0) {
+        await trx('JobApplication')
+          .whereIn(
+            'jobApplicationId',
+            otherPendingApps.map((app) => app.jobApplicationId)
+          )
+          .update({
+            status: applicationStatusType.REJECTED,
+            ...auditUpdate(user.userLogName),
+          });
+      }
+
       await trx('StudentJob')
         .where({ studentJobId: existingJob.studentJobId })
         .update({
           status: jobStatusType.MATCHED,
           ...auditUpdate(user.userLogName),
         });
+
+      const newBookingData: Partial<Booking> = {
+        studentProfileId: existingJob.studentProfileId,
+        tutorProfileId: existingApp.tutorProfileId,
+        subjectId: existingJob.subjectId,
+        originatingStudentJobId: existingJob.studentJobId,
+        agreedHourlyRate: existingApp.proposedRate,
+        teachingMode:
+          existingJob.locationType === teachingLocationType.ONSITE ? teachingModeType.ONSITE : teachingModeType.ONLINE,
+        status: bookingStatusType.PENDING_CONFIRMATION,
+        ...auditCreate(user.userLogName),
+      };
+      const [createdBooking] = await trx('Booking').insert(newBookingData).returning<Booking[]>('*');
+      if (!createdBooking) {
+        throw new ApiError(500, 'me_005_app_status_e_s_08', 'Failed to create booking.');
+      }
+      bookingId = createdBooking.bookingId;
+
+      // Notify the rejected tutors
+      if (otherPendingApps.length > 0) {
+        const rejectedTutors = await trx('TutorProfile')
+          .whereIn(
+            'tutorProfileId',
+            otherPendingApps.map((app) => app.tutorProfileId)
+          )
+          .select<TutorProfile[]>('userId', 'tutorProfileId');
+        const appByTutor = new Map(otherPendingApps.map((app) => [app.tutorProfileId, app.jobApplicationId]));
+        for (const rejectedTutor of rejectedTutors) {
+          notiRows.push({
+            userId: rejectedTutor.userId,
+            priorityTier: notificationPriorityType.MEDIUM,
+            title: 'Application REJECTED',
+            body: 'Your job application was marked as rejected.',
+            referenceType: 'JobApplication',
+            referenceId: appByTutor.get(rejectedTutor.tutorProfileId),
+            isReadFlag: false,
+            ...auditCreate(user.userLogName),
+          });
+        }
+      }
     }
 
+    // Notify the tutor who owns this application
     const tutorOwner = await trx('TutorProfile')
       .where({ tutorProfileId: existingApp.tutorProfileId, isActiveFlag: true })
       .first<TutorProfile>();
     if (tutorOwner) {
-      const notiData: Partial<Notification> = {
+      notiRows.push({
         userId: tutorOwner.userId,
         priorityTier: notificationPriorityType.HIGH,
         title: `Application ${input.status.toUpperCase()}`,
         body: `Your job application was marked as ${input.status}.`,
-        referenceType: 'JobApplication',
-        referenceId: updatedApp.jobApplicationId,
+        referenceType: bookingId ? 'Booking' : 'JobApplication',
+        referenceId: bookingId ?? updatedApp.jobApplicationId,
         isReadFlag: false,
         ...auditCreate(user.userLogName),
-      };
-      await trx('Notification').insert(notiData);
+      });
+    }
+    if (notiRows.length > 0) {
+      await trx('Notification').insert(notiRows);
     }
 
     // Return result
     return {
       jobApplicationId: updatedApp.jobApplicationId,
       status: updatedApp.status,
+      bookingId,
     };
   });
 }
